@@ -1,0 +1,51 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.env.*
+!.env.example
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ===============================
+# Node / JS
+# ===============================
+node_modules/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===============================
+# OS / Editor
+# ===============================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ===============================
+# Testing / Coverage
+# ===============================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ===============================
+# Logs
+# ===============================
+*.log
+
