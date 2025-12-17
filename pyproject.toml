@@ -1,0 +1,19 @@
+[project]
+name = "envertor"
+version = "0.1.0"
+description = "Generate example .env files from existing .env files with placeholder detection."
+authors = [
+    { name = "Samin Yeasar", email = "syeasar.kuet@gmail.com" }
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+dependencies = []
+
+[project.scripts]
+envertor = "envertor.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+

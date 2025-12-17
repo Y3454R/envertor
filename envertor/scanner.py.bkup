@@ -1,0 +1,48 @@
+# envertor/scanner.py
+import os
+import re
+
+def scan_python_file(path):
+    """Extract environment variables from a Python file."""
+    env_vars = set()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            code = f.read()
+        # os.getenv("KEY") and os.environ["KEY"]
+        matches = re.findall(r'os\.environ(?:\.get|\[)"?([A-Z0-9_]+)"?', code)
+        matches += re.findall(r'os\.getenv\("([A-Z0-9_]+)"\)', code)
+        env_vars.update(matches)
+    except Exception:
+        pass
+    return env_vars
+
+def scan_js_file(path):
+    """Extract environment variables from a JS/TS file."""
+    env_vars = set()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            code = f.read()
+        matches = re.findall(r'process\.env\.([A-Z0-9_]+)', code)
+        env_vars.update(matches)
+    except Exception:
+        pass
+    return env_vars
+
+def scan_project(project_path, languages=("python","js")):
+    """
+    Scan the entire project for environment variables.
+
+    :param project_path: root folder to scan
+    :param languages: tuple of languages to scan ("python", "js")
+    :return: set of env variable names
+    """
+    env_vars = set()
+    for root, _, files in os.walk(project_path):
+        for file in files:
+            full_path = os.path.join(root, file)
+            if "python" in languages and file.endswith(".py"):
+                env_vars.update(scan_python_file(full_path))
+            if "js" in languages and file.endswith((".js", ".ts", ".jsx", ".tsx")):
+                env_vars.update(scan_js_file(full_path))
+    return env_vars
+
