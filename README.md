@@ -1,8 +1,12 @@
+<div align="center">
+
 # Envertor 🔍
 
 [![PyPI version](https://img.shields.io/pypi/v/envertor)](https://pypi.org/project/envertor/)
 [![Python](https://img.shields.io/pypi/pyversions/envertor)](https://pypi.org/project/envertor/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Y3454R/envertor/blob/main/LICENSE)
+
+</div>
 
 Envertor is a CLI tool that generates `.env.example` files by extracting environment variables from existing `.env` files or by scanning Python and JavaScript/TypeScript projects. It also helps keep your secrets safe with automatic `.gitignore` protection and CI/CD-ready parity checks.
 
