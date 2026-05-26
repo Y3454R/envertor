@@ -18,8 +18,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yeasar/envertor"
-Repository = "https://github.com/yeasar/envertor"
+Homepage = "https://github.com/Y3454R/envertor"
+Repository = "https://github.com/Y3454R/envertor"
 
 [project.scripts]
 envertor = "envertor.cli:main"
