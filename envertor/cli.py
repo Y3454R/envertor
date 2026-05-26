@@ -50,6 +50,11 @@ def main():
         help="Create .env from FILE (default: .env.example). Writes .env.envertor if .env already exists."
     )
     parser.add_argument(
+        "--placeholder",
+        action="store_true",
+        help="Use type-aware placeholders in output (e.g. 0, 0.0, false, '') instead of empty values"
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help="Check that .env and .env.example have matching keys. Exits 1 on mismatch."
@@ -88,9 +93,10 @@ def main():
     if args.project:
         languages = ("python", "js") if args.lang == "both" else (args.lang,)
         env_vars = scan_project(args.project, languages)
+        placeholder = "''" if args.placeholder else ""
         with open(args.output, "w") as f:
             for key in sorted(env_vars):
-                f.write(f"{key}=\n")
+                f.write(f"{key}={placeholder}\n")
         print(f"Generated {args.output} from project scan.")
         ensure_env_in_gitignore(args.project)
         env_path = os.path.join(args.project, ".env")
@@ -100,7 +106,7 @@ def main():
             check_example_values(args.output)
 
     elif args.input:
-        generate_example_env(args.input, args.output)
+        generate_example_env(args.input, args.output, use_placeholder=args.placeholder)
         print(f"Created {args.output} from {args.input}")
         project_dir = os.path.dirname(os.path.abspath(args.input))
         ensure_env_in_gitignore(project_dir)

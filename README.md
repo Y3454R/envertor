@@ -35,6 +35,19 @@ envertor -i .env -o .env.example
 
 | Original `.env` | Generated `.env.example` |
 |---|---|
+| `SECRET=mysecret` | `SECRET=` |
+| `PORT=8080` | `PORT=` |
+| `DEBUG=true` | `DEBUG=` |
+| `RATE=3.14` | `RATE=` |
+
+Use `--placeholder` to write type-aware values instead of empty:
+
+```bash
+envertor -i .env -o .env.example --placeholder
+```
+
+| Original `.env` | With `--placeholder` |
+|---|---|
 | `SECRET=mysecret` | `SECRET=''` |
 | `PORT=8080` | `PORT=0` |
 | `DEBUG=true` | `DEBUG=false` |
@@ -139,6 +152,7 @@ Every time envertor runs, it performs these checks automatically:
 | `-o, --output FILE` | Path to output `.env.example` (default: `.env.example`) |
 | `-p, --project DIR` | Project folder to scan for env variable usage |
 | `--lang python\|js\|both` | Language filter for project scanning (default: `both`) |
+| `--placeholder` | Use type-aware placeholders (`0`, `0.0`, `false`, `''`) instead of empty values |
 | `--create-env [FILE]` | Create `.env` from `FILE` (default: `.env.example`) |
 | `--check` | Check key parity and exit `1` on mismatch (CI/CD mode) |
 | `--env-file FILE` | `.env` path for `--check` (default: `.env`) |

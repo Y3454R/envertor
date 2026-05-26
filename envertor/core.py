@@ -21,7 +21,7 @@ def detect_placeholder(value):
     return "''"
 
 
-def generate_example_env(input_file, output_file):
+def generate_example_env(input_file, output_file, use_placeholder=False):
     with open(input_file, "r") as f:
         lines = f.readlines()
 
@@ -46,12 +46,12 @@ def generate_example_env(input_file, output_file):
                 value = value_part.strip()
                 inline_comment = ""
 
-            placeholder = detect_placeholder(value)
+            replacement = detect_placeholder(value) if use_placeholder else ""
 
             if inline_comment:
-                new_line = f"{key}={placeholder} {inline_comment}\n"
+                new_line = f"{key}={replacement} {inline_comment}\n"
             else:
-                new_line = f"{key}={placeholder}\n"
+                new_line = f"{key}={replacement}\n"
 
             new_lines.append(new_line)
         else:

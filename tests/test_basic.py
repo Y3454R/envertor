@@ -14,6 +14,34 @@ def test_placeholder_detection():
     assert detect_placeholder("hello") == "''"
 
 
+def test_generate_example_env_empty_by_default():
+    from envertor.core import generate_example_env
+    with tempfile.TemporaryDirectory() as d:
+        env = os.path.join(d, ".env")
+        out = os.path.join(d, ".env.example")
+        with open(env, "w") as f:
+            f.write("SECRET=mysecret\nPORT=8080\nDEBUG=true\n")
+        generate_example_env(env, out)
+        content = open(out).read()
+        assert "SECRET=\n" in content
+        assert "PORT=\n" in content
+        assert "DEBUG=\n" in content
+
+
+def test_generate_example_env_with_placeholder():
+    from envertor.core import generate_example_env
+    with tempfile.TemporaryDirectory() as d:
+        env = os.path.join(d, ".env")
+        out = os.path.join(d, ".env.example")
+        with open(env, "w") as f:
+            f.write("SECRET=mysecret\nPORT=8080\nDEBUG=true\n")
+        generate_example_env(env, out, use_placeholder=True)
+        content = open(out).read()
+        assert "SECRET=''\n" in content
+        assert "PORT=0\n" in content
+        assert "DEBUG=false\n" in content
+
+
 # --- ensure_env_in_gitignore ---
 
 def test_gitignore_created_when_missing():
