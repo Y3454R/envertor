@@ -1,6 +1,6 @@
 [project]
 name = "envertor"
-version = "0.1.3"
+version = "0.1.4"
 description = "Generate example .env files from existing .env files with placeholder detection."
 authors = [
     { name = "Samin Yeasar", email = "syeasar.kuet@gmail.com" }

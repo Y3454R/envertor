@@ -43,7 +43,12 @@ def protect(env_path: str) -> None:
         print("[envertor] .env is already protected in .gitignore")
         return
 
-    answer = input("[envertor] .env is not listed in .gitignore. Add it now? [y/N]: ").strip().lower()
+    if not os.path.exists(gitignore_path):
+        prompt = "[envertor] No .gitignore found. Create one with .env? [y/N]: "
+    else:
+        prompt = "[envertor] .env is not listed in .gitignore. Add it now? [y/N]: "
+
+    answer = input(prompt).strip().lower()
     if answer != "y":
         print("[envertor] Skipped.")
         return
