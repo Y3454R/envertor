@@ -8,7 +8,7 @@
 
 </div>
 
-Envertor is a CLI tool that generates `.env.example` files by extracting environment variables from existing `.env` files or by scanning Python and JavaScript/TypeScript projects. It also helps keep your secrets safe with automatic `.gitignore` protection and CI/CD-ready parity checks.
+Envertor is a CLI tool that generates `.env.example` files by extracting environment variables from existing `.env` files or by scanning Python and JavaScript/TypeScript projects. It also helps keep your secrets safe with `.gitignore` warnings, key parity checks, and CI/CD-ready exit codes.
 
 ## Install
 
@@ -27,7 +27,7 @@ pip install -e .
 
 ### Generate `.env.example` from an existing `.env`
 
-Strips real values and replaces them with type-appropriate placeholders:
+Strips real values and outputs empty keys by default:
 
 ```bash
 envertor -i .env -o .env.example
@@ -88,6 +88,25 @@ If `.env` already exists, writes `.env.envertor` instead to avoid overwriting.
 
 ---
 
+### Fill empty values from an old `.env`
+
+Backfill empty keys in your current `.env` with values from a previous or backup `.env`:
+
+```bash
+envertor --complete --from .env.old
+envertor --complete .env.staging --from .env.backup
+```
+
+Only strictly empty keys (`KEY=`) are filled — keys that already have a value (including placeholders like `KEY=''`) are left untouched. Keys present in the source but absent from the target are ignored.
+
+Preview what would be filled without writing anything:
+
+```bash
+envertor --complete --from .env.old --dry-run
+```
+
+---
+
 ### Check parity between `.env` and `.env.example`
 
 Explicitly verify that both files have the same keys. Designed for CI/CD pipelines — exits `1` on mismatch:
@@ -113,6 +132,34 @@ Use in a pipeline:
 
 ---
 
+### Protect `.env` in `.gitignore`
+
+Every envertor run warns if `.env` is not listed in your repo's `.gitignore`:
+
+```
+[envertor] WARNING: .env is not listed in .gitignore. Run --protect to fix.
+```
+
+Run `--protect` to interactively add it. Envertor walks up from your `.env` location to find the repo root (where `.git/` lives), so it works correctly in monorepos:
+
+```bash
+envertor --protect
+```
+
+```
+[envertor] .env is not listed in .gitignore. Add it now? [y/N]: y
+[envertor] Added .env to .gitignore at /repo/.gitignore
+[envertor] If .env was previously committed, remove it from git cache:
+           git rm --cached .env
+```
+
+If `.env` is already protected:
+```
+[envertor] .env is already protected in .gitignore
+```
+
+---
+
 ### Show version
 
 ```bash
@@ -125,10 +172,9 @@ envertor -v
 
 Every time envertor runs, it performs these checks automatically:
 
-**`.gitignore` protection** — ensures `.env` is listed in `.gitignore`. Creates the file if it doesn't exist:
+**`.gitignore` warning** — warns if `.env` is not listed in `.gitignore` (use `--protect` to fix):
 ```
-[envertor] Created .gitignore with .env
-[envertor] Added .env to .gitignore
+[envertor] WARNING: .env is not listed in .gitignore. Run --protect to fix.
 ```
 
 **Key parity warning** — warns if `.env` and `.env.example` have different keys:
@@ -137,7 +183,7 @@ Every time envertor runs, it performs these checks automatically:
 [envertor] WARNING: Keys in .env.example not found in .env: NEW_KEY
 ```
 
-**Leftover values warning** — warns if `.env.example` contains non-placeholder values (real secrets accidentally left behind):
+**Leftover values warning** — warns if `.env.example` contains non-placeholder values:
 ```
 [envertor] WARNING: .env.example has a real value set for API_KEY
 ```
@@ -154,6 +200,10 @@ Every time envertor runs, it performs these checks automatically:
 | `--lang python\|js\|both` | Language filter for project scanning (default: `both`) |
 | `--placeholder` | Use type-aware placeholders (`0`, `0.0`, `false`, `''`) instead of empty values |
 | `--create-env [FILE]` | Create `.env` from `FILE` (default: `.env.example`) |
+| `--complete [TARGET]` | Fill empty keys in `TARGET` (default: `.env`) from `--from` source |
+| `--from SOURCE` | Source `.env` file to read values from (used with `--complete`) |
+| `--dry-run` | Preview what `--complete` would fill without writing any changes |
+| `--protect` | Interactively add `.env` to `.gitignore` at repo root |
 | `--check` | Check key parity and exit `1` on mismatch (CI/CD mode) |
 | `--env-file FILE` | `.env` path for `--check` (default: `.env`) |
 | `--example-file FILE` | `.env.example` path for `--check` (default: `.env.example`) |
@@ -166,6 +216,7 @@ Every time envertor runs, it performs these checks automatically:
 - Automatically skips `node_modules/`, `venv/`, `__pycache__/`, `.next/`, `.git/`, `.idea/`, `.vscode/`
 - Regex-based scanning catches the most common patterns (`os.getenv`, `os.environ`, `process.env`)
 - `.env.envertor` is a safe backup — rename it to `.env` or diff it against your existing one
+- `--protect` walks up the directory tree to find `.git/`, so it works correctly in monorepos
 
 ---
 

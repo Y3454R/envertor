@@ -2,8 +2,8 @@ import os
 import tempfile
 import pytest
 
-from envertor.core import detect_placeholder
-from envertor.gitignore import ensure_env_in_gitignore
+from envertor.core import detect_placeholder, complete_env
+from envertor.gitignore import find_repo_root, warn_if_env_unprotected
 from envertor.checker import check_key_parity, check_example_values
 
 
@@ -42,43 +42,115 @@ def test_generate_example_env_with_placeholder():
         assert "DEBUG=false\n" in content
 
 
-# --- ensure_env_in_gitignore ---
+# --- find_repo_root ---
 
-def test_gitignore_created_when_missing():
+def test_find_repo_root_finds_git():
     with tempfile.TemporaryDirectory() as d:
-        ensure_env_in_gitignore(d)
-        gitignore = os.path.join(d, ".gitignore")
-        assert os.path.exists(gitignore)
-        assert ".env" in open(gitignore).read()
+        git_dir = os.path.join(d, ".git")
+        os.makedirs(git_dir)
+        subdir = os.path.join(d, "backend", "src")
+        os.makedirs(subdir)
+        env = os.path.join(subdir, ".env")
+        open(env, "w").close()
+        assert find_repo_root(env) == d
 
 
-def test_gitignore_appended_when_env_missing():
+def test_find_repo_root_returns_none_when_no_git():
     with tempfile.TemporaryDirectory() as d:
+        env = os.path.join(d, ".env")
+        open(env, "w").close()
+        assert find_repo_root(env) is None
+
+
+# --- warn_if_env_unprotected ---
+
+def test_warn_prints_when_not_in_gitignore(capsys):
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, ".git"))
         gitignore = os.path.join(d, ".gitignore")
         with open(gitignore, "w") as f:
             f.write("node_modules/\n")
-        ensure_env_in_gitignore(d)
-        content = open(gitignore).read()
-        assert ".env" in content
-        assert "node_modules/" in content
+        env = os.path.join(d, ".env")
+        open(env, "w").close()
+        warn_if_env_unprotected(env)
+        assert "WARNING" in capsys.readouterr().out
 
 
-def test_gitignore_no_duplicate_when_env_present():
+def test_warn_silent_when_already_protected(capsys):
     with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, ".git"))
         gitignore = os.path.join(d, ".gitignore")
         with open(gitignore, "w") as f:
-            f.write(".env\nnode_modules/\n")
-        ensure_env_in_gitignore(d)
-        content = open(gitignore).read()
-        assert content.count(".env") == 1
+            f.write(".env\n")
+        env = os.path.join(d, ".env")
+        open(env, "w").close()
+        warn_if_env_unprotected(env)
+        assert capsys.readouterr().out == ""
 
 
-# --- check_key_parity ---
+def test_warn_silent_when_no_git(capsys):
+    with tempfile.TemporaryDirectory() as d:
+        env = os.path.join(d, ".env")
+        open(env, "w").close()
+        warn_if_env_unprotected(env)
+        assert capsys.readouterr().out == ""
+
+
+# --- complete_env ---
 
 def _write(path, content):
     with open(path, "w") as f:
         f.write(content)
 
+
+def test_complete_fills_empty_keys():
+    with tempfile.TemporaryDirectory() as d:
+        target = os.path.join(d, ".env")
+        source = os.path.join(d, ".env.old")
+        _write(target, "SECRET=\nPORT=\n")
+        _write(source, "SECRET=abc123\nPORT=8080\n")
+        complete_env(target, source)
+        content = open(target).read()
+        assert "SECRET=abc123" in content
+        assert "PORT=8080" in content
+
+
+def test_complete_skips_non_empty_keys():
+    with tempfile.TemporaryDirectory() as d:
+        target = os.path.join(d, ".env")
+        source = os.path.join(d, ".env.old")
+        _write(target, "SECRET=already_set\nPORT=\n")
+        _write(source, "SECRET=other\nPORT=9000\n")
+        complete_env(target, source)
+        content = open(target).read()
+        assert "SECRET=already_set" in content
+        assert "PORT=9000" in content
+
+
+def test_complete_ignores_extra_source_keys():
+    with tempfile.TemporaryDirectory() as d:
+        target = os.path.join(d, ".env")
+        source = os.path.join(d, ".env.old")
+        _write(target, "SECRET=\n")
+        _write(source, "SECRET=abc\nEXTRA=should_not_appear\n")
+        complete_env(target, source)
+        content = open(target).read()
+        assert "EXTRA" not in content
+
+
+def test_complete_dry_run_does_not_write(capsys):
+    with tempfile.TemporaryDirectory() as d:
+        target = os.path.join(d, ".env")
+        source = os.path.join(d, ".env.old")
+        _write(target, "SECRET=\n")
+        _write(source, "SECRET=abc123\n")
+        complete_env(target, source, dry_run=True)
+        content = open(target).read()
+        assert "SECRET=\n" in content
+        assert "dry-run" in capsys.readouterr().out
+
+
+# --- check_key_parity ---
 
 def test_parity_match(capsys):
     with tempfile.TemporaryDirectory() as d:
