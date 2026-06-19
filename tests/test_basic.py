@@ -3,7 +3,7 @@ import tempfile
 import pytest
 
 from envertor.core import detect_placeholder, complete_env
-from envertor.gitignore import find_repo_root, warn_if_env_unprotected
+from envertor.gitignore import find_repo_root, warn_if_env_unprotected, print_gitignore_status
 from envertor.checker import check_key_parity, check_example_values
 
 
@@ -86,6 +86,37 @@ def test_warn_silent_when_already_protected(capsys):
         open(env, "w").close()
         warn_if_env_unprotected(env)
         assert capsys.readouterr().out == ""
+
+
+def test_print_gitignore_status_protected(capsys):
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, ".git"))
+        with open(os.path.join(d, ".gitignore"), "w") as f:
+            f.write(".env\n")
+        print_gitignore_status(d)
+        out = capsys.readouterr().out
+        assert ".gitignore:" in out
+        assert "protected" in out
+
+
+def test_print_gitignore_status_not_listed(capsys):
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, ".git"))
+        with open(os.path.join(d, ".gitignore"), "w") as f:
+            f.write("node_modules/\n")
+        print_gitignore_status(d)
+        out = capsys.readouterr().out
+        assert ".gitignore:" in out
+        assert "WARNING" in out
+
+
+def test_print_gitignore_status_no_gitignore(capsys):
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, ".git"))
+        print_gitignore_status(d)
+        out = capsys.readouterr().out
+        assert "not found" in out
+        assert "WARNING" in out
 
 
 def test_warn_silent_when_no_git(capsys):

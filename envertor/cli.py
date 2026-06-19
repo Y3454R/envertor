@@ -5,7 +5,7 @@ import argparse
 
 from .core import generate_example_env, complete_env
 from .scanner import scan_project
-from .gitignore import warn_if_env_unprotected, protect
+from .gitignore import warn_if_env_unprotected, protect, print_gitignore_status
 from .checker import check_key_parity, check_example_values
 from .version import __version__
 
@@ -159,4 +159,5 @@ def main():
             check_example_values(args.output)
 
     else:
-        print("Provide either --input or --project")
+        print_gitignore_status(os.getcwd())
+        print("Run 'envertor --help' for usage.")

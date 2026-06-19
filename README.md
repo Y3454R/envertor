@@ -160,6 +160,36 @@ If `.env` is already protected:
 
 ---
 
+### Quick status check
+
+Running `envertor` with no arguments prints the `.gitignore` protection status for the current directory:
+
+```bash
+envertor
+```
+
+```
+[envertor] .gitignore: /repo/.gitignore
+[envertor] .env is protected in .gitignore
+Run 'envertor --help' for usage.
+```
+
+If `.env` is not listed:
+```
+[envertor] .gitignore: /repo/.gitignore
+[envertor] WARNING: .env is not listed in .gitignore. Run --protect to fix.
+Run 'envertor --help' for usage.
+```
+
+If no `.gitignore` exists yet:
+```
+[envertor] .gitignore: not found (repo root: /repo)
+[envertor] WARNING: .env is not listed in .gitignore. Run --protect to fix.
+Run 'envertor --help' for usage.
+```
+
+---
+
 ### Show version
 
 ```bash

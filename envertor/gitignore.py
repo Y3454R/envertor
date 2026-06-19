@@ -22,6 +22,22 @@ def _env_in_gitignore(gitignore_path: str) -> bool:
     return False
 
 
+def print_gitignore_status(start_path: str) -> None:
+    repo_root = find_repo_root(start_path)
+    if repo_root is None:
+        return
+    gitignore_path = os.path.join(repo_root, ".gitignore")
+    if not os.path.exists(gitignore_path):
+        print(f"[envertor] .gitignore: not found (repo root: {repo_root})")
+        print("[envertor] WARNING: .env is not listed in .gitignore. Run --protect to fix.")
+    elif _env_in_gitignore(gitignore_path):
+        print(f"[envertor] .gitignore: {gitignore_path}")
+        print("[envertor] .env is protected in .gitignore")
+    else:
+        print(f"[envertor] .gitignore: {gitignore_path}")
+        print("[envertor] WARNING: .env is not listed in .gitignore. Run --protect to fix.")
+
+
 def warn_if_env_unprotected(env_path: str) -> None:
     repo_root = find_repo_root(env_path)
     if repo_root is None:
